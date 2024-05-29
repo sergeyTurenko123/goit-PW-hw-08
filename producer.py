@@ -1,11 +1,8 @@
 import pika
-from datetime import datetime
-import sys
 from bson import json_util
-import json
 from models2 import Contact
 import faker
-from random import randint, choice
+from random import choice
 
 credentials = pika.PlainCredentials('guest', 'guest')
 connection = pika.BlockingConnection(
@@ -36,10 +33,11 @@ def main():
     for name in names:
         message = Contact(name=name, email=choice(emails), log=False).save()
 
+    for contact in Contact.objects():
         channel.basic_publish(
             exchange='task_mock',
             routing_key='task_queue',
-            body=json_util.dumps([contact.id for contact in Contact.objects()]).encode(),
+            body=json_util.dumps(contact.id).encode(),
             properties=pika.BasicProperties(
             delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE))
         print(" [x] Sent %r" % message)
@@ -48,3 +46,4 @@ def main():
     
 if __name__ == '__main__':
     main()
+    

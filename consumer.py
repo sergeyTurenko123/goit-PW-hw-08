@@ -1,7 +1,8 @@
 import pika
-
+from models2 import Contact
 import time
 import json
+import smtplib
 
 credentials = pika.PlainCredentials('guest', 'guest')
 connection = pika.BlockingConnection(
@@ -14,6 +15,11 @@ print(' [*] Waiting for messages. To exit press CTRL+C')
 
 def callback(ch, method, properties, body):
     message = json.loads(body.decode())
+    # smtpObj = smtplib.SMTP(['localhost', 5672])
+    # sender = [contact.email for contact in Contact.objects(id=message["$oid"])]
+    # smtpObj.sendmail(sender, ['to@example.com'], message)
+    contact=Contact.objects(id=message["$oid"])
+    contact.update(log=True)
     print(f" [x] Received {message}")
     time.sleep(1)
     print(f" [x] Done: {method.delivery_tag}")
